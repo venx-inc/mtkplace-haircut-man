@@ -14,9 +14,17 @@ parceiro com fila de verificação.
 
 2. **Crie um projeto no [Supabase](https://supabase.com)** (gratuito para começar).
 
-3. **Rode a migração inicial** — abra o SQL Editor do seu projeto Supabase e
-   cole o conteúdo de `supabase/migrations/0001_init.sql` (cria as tabelas,
-   os triggers de rating/perfil automático e as políticas de RLS).
+3. **Rode as migrações, nesta ordem** — abra o SQL Editor do seu projeto
+   Supabase e cole o conteúdo de:
+   - `0001_init.sql` — tabelas, triggers de rating/perfil automático e RLS;
+   - `0002_storage.sql` — bucket `professional-photos` para fotos de capa e
+     antes-e-depois, com políticas de acesso;
+   - `0003_admin_and_leads.sql` — políticas de RLS para o painel admin
+     (aprovar/rejeitar) e para o profissional atualizar o status dos próprios
+     leads.
+
+   Para testar o painel `/admin`, promova seu usuário a admin direto no banco:
+   `update public.profiles set role = 'admin' where id = 'SEU_USER_ID';`
 
    Se preferir a CLI:
    ```bash
@@ -28,8 +36,12 @@ parceiro com fila de verificação.
    ```bash
    cp .env.example .env.local
    ```
-   Preencha `NEXT_PUBLIC_SUPABASE_URL` e `NEXT_PUBLIC_SUPABASE_ANON_KEY` com os
-   valores em *Project Settings → API* no painel do Supabase.
+   Preencha `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY` e
+   `SUPABASE_SERVICE_ROLE_KEY` com os valores em *Project Settings → API* no
+   painel do Supabase (a service role key é usada só server-side, para o
+   admin buscar o e-mail do dono de um profissional e mandar os avisos).
+   `RESEND_API_KEY`/`EMAIL_FROM` são opcionais — sem eles, os e-mails
+   transacionais só são logados no console em vez de enviados de verdade.
 
 5. **Suba o servidor de desenvolvimento**
    ```bash
@@ -77,13 +89,72 @@ são visíveis para o profissional dono.
 Isso aqui é a fundação — banco, auth e as telas centrais. Para fechar a Fase 1
 do roadmap, os próximos passos são:
 
-1. Upload de imagens (Supabase Storage) para foto de capa e antes-e-depois no
-   formulário de cadastro do parceiro.
-2. Painel admin simples para aprovar/rejeitar profissionais em `pendente`
-   (hoje isso só dá pra fazer direto no painel do Supabase).
-3. Formulário de avaliação (hoje só a leitura está implementada).
-4. Página "meus leads" para o profissional ver as `contact_requests` recebidas.
-5. Deploy: Vercel (frontend) + Supabase (já é hospedado) — bem direto.
+1. ~~Upload de imagens (Supabase Storage) para foto de capa e antes-e-depois no
+   formulário de cadastro do parceiro.~~ ✅ feito — bucket `professional-photos`
+   (`0002_storage.sql`) + upload de foto de capa e casos antes-e-depois (com
+   preview) direto no formulário de cadastro.
+2. ~~Painel admin simples para aprovar/rejeitar profissionais em `pendente`.~~
+   ✅ feito — `/admin` lista os pendentes com botões aprovar/rejeitar
+   (`0003_admin_and_leads.sql` dá a policy de RLS pro admin enxergar/editar
+   qualquer profissional).
+3. ~~Formulário de avaliação.~~ ✅ feito — cliente autenticado avalia direto na
+   página do profissional (nota de 1 a 5 + comentário), bloqueado se já
+   avaliou ou se não estiver logado.
+4. ~~Página "meus leads" para o profissional ver as `contact_requests`
+   recebidas.~~ ✅ feito — `/painel` lista os leads do próprio profissional e
+   deixa marcar como respondido/concluído.
+5. ~~E-mail transacional (confirmação de cadastro, aviso de aprovação/rejeição,
+   aviso de lead novo).~~ ✅ feito via [Resend](https://resend.com)
+   (`src/lib/email.ts`) — confirmação ao cadastrar, aviso de
+   aprovação/rejeição e aviso de lead novo. Sem `RESEND_API_KEY` configurada,
+   os envios só são logados no console (não quebra o fluxo em dev).
+6. Deploy: Vercel (frontend) + Supabase (já é hospedado) — ver checklist
+   abaixo.
+
+O header agora mostra "Admin" e "Meus leads" condicionalmente ao papel do
+usuário logado, e um botão "Sair".
+
+## Deploy de homologação (Vercel + Supabase)
+
+Next.js na Vercel não precisa de `vercel.json` — o framework é detectado
+automaticamente. O que precisa de atenção manual é a configuração do
+Supabase e as variáveis de ambiente.
+
+1. **Supabase — banco**
+   - Use o mesmo projeto do passo "Como rodar localmente" ou crie um novo
+     exclusivo para homologação.
+   - Rode as três migrações **nesta ordem**, se ainda não rodou:
+     `0001_init.sql` → `0002_storage.sql` → `0003_admin_and_leads.sql`.
+   - Promova pelo menos um usuário a admin:
+     `update public.profiles set role = 'admin' where id = 'SEU_USER_ID';`
+
+2. **Supabase — Auth URLs** (*Authentication → URL Configuration*)
+   - `Site URL`: a URL de produção da Vercel (ex: `https://seu-projeto.vercel.app`).
+   - `Redirect URLs`: adicione a mesma URL e, se quiser testar preview
+     deploys, o padrão `https://*-seu-usuario.vercel.app/**`.
+   - Sem isso, os links de confirmação de e-mail/redefinição de senha do
+     Supabase Auth apontam pro `localhost`.
+
+3. **Resend (opcional, mas recomendado em homologação)**
+   - Crie a API key em [resend.com](https://resend.com).
+   - Sem domínio próprio verificado, use `EMAIL_FROM=onboarding@resend.dev` —
+     funciona, mas só entrega para o e-mail cadastrado na sua conta Resend.
+     Para mandar e-mail de verdade pros parceiros, verifique um domínio no
+     Resend e use esse domínio em `EMAIL_FROM`.
+
+4. **Vercel**
+   - Importe o repositório Git (New Project → selecione o repo).
+   - Framework preset: Next.js (automático).
+   - Adicione as variáveis de ambiente (as mesmas do `.env.local`):
+     `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
+     `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `EMAIL_FROM`.
+   - Deploy.
+
+5. **Checklist pós-deploy** — teste o fluxo completo na URL publicada:
+   criar conta → cadastrar profissional → aprovar em `/admin` → ver o
+   perfil público → mandar um lead de contato → conferir em `/painel` →
+   avaliar o profissional. Confira também se os e-mails chegaram (ou
+   apareceram no log da função, se o Resend não estiver configurado).
 
 ## Próxima fase (Tração & Confiança)
 

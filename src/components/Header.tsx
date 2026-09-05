@@ -1,6 +1,19 @@
 import Link from "next/link";
+import { createClient } from "@/lib/supabase/server";
+import { signOut } from "@/app/login/actions";
 
-export function Header() {
+export async function Header() {
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const profile = user
+    ? (
+        await supabase.from("profiles").select("role").eq("id", user.id).single()
+      ).data
+    : null;
+
   return (
     <header className="border-b border-brand-100 bg-paper">
       <div className="mx-auto flex max-w-6xl items-center justify-between px-6 py-4">
@@ -11,15 +24,42 @@ export function Header() {
           <Link href="/diretorio" className="hover:text-brand-600">
             Encontrar profissional
           </Link>
-          <Link href="/cadastro-profissional" className="hover:text-brand-600">
-            Sou profissional
-          </Link>
-          <Link
-            href="/login"
-            className="rounded-md bg-brand-500 px-4 py-2 text-white hover:bg-brand-600"
-          >
-            Entrar
-          </Link>
+
+          {profile?.role === "admin" && (
+            <Link href="/admin" className="hover:text-brand-600">
+              Admin
+            </Link>
+          )}
+
+          {profile?.role === "profissional" && (
+            <Link href="/painel" className="hover:text-brand-600">
+              Meus leads
+            </Link>
+          )}
+
+          {!user && (
+            <Link href="/cadastro-profissional" className="hover:text-brand-600">
+              Sou profissional
+            </Link>
+          )}
+
+          {user ? (
+            <form action={signOut}>
+              <button
+                type="submit"
+                className="rounded-md bg-brand-500 px-4 py-2 text-white hover:bg-brand-600"
+              >
+                Sair
+              </button>
+            </form>
+          ) : (
+            <Link
+              href="/login"
+              className="rounded-md bg-brand-500 px-4 py-2 text-white hover:bg-brand-600"
+            >
+              Entrar
+            </Link>
+          )}
         </nav>
       </div>
     </header>

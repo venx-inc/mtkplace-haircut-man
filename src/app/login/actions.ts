@@ -38,3 +38,9 @@ export async function signUp(_prevState: AuthState, formData: FormData): Promise
 
   redirect(role === "profissional" ? "/cadastro-profissional" : "/diretorio");
 }
+
+export async function signOut() {
+  const supabase = await createClient();
+  await supabase.auth.signOut();
+  redirect("/");
+}

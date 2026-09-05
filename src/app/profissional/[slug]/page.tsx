@@ -2,6 +2,7 @@ import Image from "next/image";
 import { notFound } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { ContactForm } from "./ContactForm";
+import { ReviewForm } from "./ReviewForm";
 
 export default async function ProfessionalPage({
   params,
@@ -19,7 +20,11 @@ export default async function ProfessionalPage({
 
   if (!professional) notFound();
 
-  const [{ data: services }, { data: cases }, { data: reviews }] = await Promise.all([
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  const [{ data: services }, { data: cases }, { data: reviews }, { data: myReview }] = await Promise.all([
     supabase
       .from("services")
       .select("*, categories(name)")
@@ -35,6 +40,14 @@ export default async function ProfessionalPage({
       .eq("professional_id", professional.id)
       .order("created_at", { ascending: false })
       .limit(10),
+    user
+      ? supabase
+          .from("reviews")
+          .select("id")
+          .eq("professional_id", professional.id)
+          .eq("client_profile_id", user.id)
+          .maybeSingle()
+      : Promise.resolve({ data: null }),
   ]);
 
   return (
@@ -137,6 +150,19 @@ export default async function ProfessionalPage({
           ) : (
             <p className="text-sm text-ink/60">Ainda sem avaliações.</p>
           )}
+
+          <div className="mt-6">
+            {myReview ? (
+              <p className="text-sm text-ink/60">Você já avaliou este profissional.</p>
+            ) : user ? (
+              <ReviewForm professionalId={professional.id} slug={slug} />
+            ) : (
+              <p className="text-sm text-ink/60">
+                <a href="/login" className="text-brand-700 underline">Faça login</a> para avaliar
+                este profissional.
+              </p>
+            )}
+          </div>
         </div>
 
         <div>
