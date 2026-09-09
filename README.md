@@ -108,17 +108,20 @@ do roadmap, os próximos passos são:
    (`src/lib/email.ts`) — confirmação ao cadastrar, aviso de
    aprovação/rejeição e aviso de lead novo. Sem `RESEND_API_KEY` configurada,
    os envios só são logados no console (não quebra o fluxo em dev).
-6. Deploy: Vercel (frontend) + Supabase (já é hospedado) — ver checklist
+6. Deploy: Netlify (frontend) + Supabase (já é hospedado) — ver checklist
    abaixo.
 
 O header agora mostra "Admin" e "Meus leads" condicionalmente ao papel do
 usuário logado, e um botão "Sair".
 
-## Deploy de homologação (Vercel + Supabase)
+## Deploy de homologação (Netlify + Supabase)
 
-Next.js na Vercel não precisa de `vercel.json` — o framework é detectado
-automaticamente. O que precisa de atenção manual é a configuração do
-Supabase e as variáveis de ambiente.
+Escolhemos Netlify em vez de Vercel porque o repositório vive na organização
+`venx-inc` no GitHub — na Vercel isso exige um time Pro (pago); no Netlify o
+plano free aceita repositórios de organização sem restrição. Next.js na
+Netlify não precisa de config manual — o build plugin (`@netlify/plugin-nextjs`)
+é detectado e instalado automaticamente ao importar o repo. O que precisa de
+atenção manual é a configuração do Supabase e as variáveis de ambiente.
 
 1. **Supabase — banco**
    - Use o mesmo projeto do passo "Como rodar localmente" ou crie um novo
@@ -129,9 +132,9 @@ Supabase e as variáveis de ambiente.
      `update public.profiles set role = 'admin' where id = 'SEU_USER_ID';`
 
 2. **Supabase — Auth URLs** (*Authentication → URL Configuration*)
-   - `Site URL`: a URL de produção da Vercel (ex: `https://seu-projeto.vercel.app`).
-   - `Redirect URLs`: adicione a mesma URL e, se quiser testar preview
-     deploys, o padrão `https://*-seu-usuario.vercel.app/**`.
+   - `Site URL`: a URL de produção do Netlify (ex: `https://seu-projeto.netlify.app`).
+   - `Redirect URLs`: adicione a mesma URL e, se quiser testar deploy previews,
+     o padrão `https://deploy-preview-*--seu-projeto.netlify.app/**`.
    - Sem isso, os links de confirmação de e-mail/redefinição de senha do
      Supabase Auth apontam pro `localhost`.
 
@@ -142,12 +145,17 @@ Supabase e as variáveis de ambiente.
      Para mandar e-mail de verdade pros parceiros, verifique um domínio no
      Resend e use esse domínio em `EMAIL_FROM`.
 
-4. **Vercel**
-   - Importe o repositório Git (New Project → selecione o repo).
-   - Framework preset: Next.js (automático).
-   - Adicione as variáveis de ambiente (as mesmas do `.env.local`):
-     `NEXT_PUBLIC_SUPABASE_URL`, `NEXT_PUBLIC_SUPABASE_ANON_KEY`,
-     `SUPABASE_SERVICE_ROLE_KEY`, `RESEND_API_KEY`, `EMAIL_FROM`.
+4. **Netlify**
+   - Entre em [netlify.com](https://netlify.com) com sua conta GitHub e
+     autorize o app da Netlify a acessar a organização `venx-inc`.
+   - "Add new site" → "Import an existing project" → GitHub → selecione
+     `venx-inc/mtkplace-haircut-man`, branch `main`.
+   - Deixe o build command e publish directory no automático (o Netlify
+     detecta Next.js sozinho).
+   - Antes de clicar em "Deploy site", adicione as variáveis de ambiente (as
+     mesmas do `.env.local`): `NEXT_PUBLIC_SUPABASE_URL`,
+     `NEXT_PUBLIC_SUPABASE_ANON_KEY`, `SUPABASE_SERVICE_ROLE_KEY`,
+     `RESEND_API_KEY`, `EMAIL_FROM`.
    - Deploy.
 
 5. **Checklist pós-deploy** — teste o fluxo completo na URL publicada:
