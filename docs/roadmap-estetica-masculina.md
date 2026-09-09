@@ -27,7 +27,12 @@ Objetivo: banco de dados, autenticação e telas centrais funcionando localmente
 - Cadastro de profissional: formulário de dados do negócio (entra como "pendente").
 - Login / criar conta: alternância entre entrar e cadastrar, com escolha de papel.
 
-## Fase 1 — MVP navegável (3–4 semanas)
+## Fase 1 — MVP navegável (3–4 semanas) ✅ concluída
+
+Deploy de homologação no ar (Netlify + Supabase). Todos os itens abaixo estão
+implementados.
+
+
 
 Objetivo: um parceiro real consegue se cadastrar, subir fotos, e um cliente consegue encontrá-lo e mandar mensagem — sem intervenção manual no banco.
 
@@ -48,9 +53,11 @@ Objetivo: um parceiro real consegue se cadastrar, subir fotos, e um cliente cons
 - Painel do profissional `/painel` (ou `/meus-leads`): lista de leads recebidos, com status.
 - Formulário de avaliação na página do profissional (nota + comentário), visível só para cliente autenticado.
 - Estado de "cadastro em análise" na página do próprio profissional, antes da aprovação.
-- Deploy de homologação (Vercel) com variáveis de ambiente do Supabase de produção.
+- Deploy de homologação (Netlify — a organização do repositório no GitHub é
+  paga na Vercel; a Netlify aceita repositório de organização no plano free)
+  com variáveis de ambiente do Supabase de produção.
 
-**Critério de saída da fase**: 5–10 parceiros reais cadastrados e aprovados, com pelo menos 1 lead real recebido por cada um.
+**Critério de saída da fase**: 5–10 parceiros reais cadastrados e aprovados, com pelo menos 1 lead real recebido por cada um. *(Infraestrutura pronta; validação com parceiros reais é o próximo passo fora do código.)*
 
 ## Fase 2 — Tração & Confiança (2–3 meses)
 
@@ -64,6 +71,7 @@ Objetivo: crescer a oferta sem depender de cadastro manual, e dar ao cliente mot
 - Notificações em tempo real ou near-real-time de lead novo (webhook para WhatsApp Business API ou e-mail imediato).
 - Modelagem de monetização: nova tabela `plans`/`subscriptions` ou campo `featured_until` em `professionals` para destaque pago.
 - Métricas básicas: tabela ou view de eventos (visualizações de perfil, cliques em "contato") para alimentar o dashboard da Fase 3.
+- Colunas de geolocalização (`latitude`/`longitude`) em `professionals`, preenchidas via geocoding da cidade/endereço no cadastro (necessário pro mapa do diretório).
 
 ### Frontend
 
@@ -72,6 +80,7 @@ Objetivo: crescer a oferta sem depender de cadastro manual, e dar ao cliente mot
 - Selo/indicador visual de "verificado" mais elaborado (com data de verificação ou tipo de checagem).
 - Indicador de destaque pago no card do profissional (ex: "patrocinado" ou posição fixa no topo).
 - Formulário de escolha de plano/destaque para o profissional dentro do próprio painel.
+- Mapa de profissionais no diretório (visualizar quem está perto de você), com Leaflet + OpenStreetMap.
 
 **Critério de saída da fase**: crescimento de oferta sem intervenção manual constante, e a primeira receita entrando.
 
@@ -103,6 +112,8 @@ Objetivo: o marketplace se sustenta e cresce sozinho.
 | Banco de dados | Postgres via Supabase | RLS nativo resolve boa parte da segurança de acesso sem código extra |
 | Autenticação | Supabase Auth | Já integrado ao banco, cobre e-mail/senha e pode crescer para OAuth depois |
 | Armazenamento de imagem | Supabase Storage | Mesmo provedor do banco, evita mais uma conta/serviço na Fase 1 |
+| Deploy (frontend) | Netlify | Vercel exige plano Pro pago pra deployar repositório de organização no GitHub; Netlify free aceita |
+| Mapa de profissionais | Leaflet + OpenStreetMap | Google Maps exige cartão de crédito cadastrado mesmo na cota grátis; Leaflet/OSM é gratuito sem esse atrito, com qualidade suficiente pro estágio atual |
 
 ## Riscos a observar
 

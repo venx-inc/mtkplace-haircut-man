@@ -108,20 +108,26 @@ do roadmap, os próximos passos são:
    (`src/lib/email.ts`) — confirmação ao cadastrar, aviso de
    aprovação/rejeição e aviso de lead novo. Sem `RESEND_API_KEY` configurada,
    os envios só são logados no console (não quebra o fluxo em dev).
-6. Deploy: Netlify (frontend) + Supabase (já é hospedado) — ver checklist
-   abaixo.
+6. ~~Deploy: Netlify (frontend) + Supabase.~~ ✅ feito — homologação no ar.
 
-O header agora mostra "Admin" e "Meus leads" condicionalmente ao papel do
-usuário logado, e um botão "Sair".
+**Fase 1 concluída.** O header mostra "Admin" e "Meus leads" condicionalmente
+ao papel do usuário logado, e um botão "Sair". Próximo passo do roadmap:
+Fase 2 (Tração & Confiança) — ver `docs/roadmap-estetica-masculina.md`.
 
 ## Deploy de homologação (Netlify + Supabase)
 
 Escolhemos Netlify em vez de Vercel porque o repositório vive na organização
 `venx-inc` no GitHub — na Vercel isso exige um time Pro (pago); no Netlify o
-plano free aceita repositórios de organização sem restrição. Next.js na
-Netlify não precisa de config manual — o build plugin (`@netlify/plugin-nextjs`)
-é detectado e instalado automaticamente ao importar o repo. O que precisa de
-atenção manual é a configuração do Supabase e as variáveis de ambiente.
+plano free aceita repositórios de organização, mas só se o repositório for
+**público** (privado de organização também exige upgrade lá). O repo foi
+tornado público por não ter nenhum segredo commitado (só `.env.example` com
+placeholders).
+
+O `netlify.toml` na raiz do projeto já declara o build command e o plugin
+`@netlify/plugin-nextjs` — sem ele, o Netlify publica o `.next` como site
+estático puro (0 functions) e todas as rotas dinâmicas dão 404. Isso já
+está resolvido no repo; só documentando o motivo pra não se perder de novo
+se o arquivo for removido por engano.
 
 1. **Supabase — banco**
    - Use o mesmo projeto do passo "Como rodar localmente" ou crie um novo
