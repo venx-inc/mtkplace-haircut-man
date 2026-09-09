@@ -43,6 +43,8 @@ export type ProfessionalRow = {
   verification_doc_url: string | null;
   avg_rating: number;
   review_count: number;
+  latitude: number | null;
+  longitude: number | null;
   created_at: string;
 };
 

@@ -4,6 +4,7 @@ import { randomUUID } from "crypto";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { sendSignupConfirmationEmail } from "@/lib/email";
+import { geocodeCity } from "@/lib/geocode";
 import type { SupabaseClient } from "@supabase/supabase-js";
 import type { Database } from "@/types/database.types";
 
@@ -104,6 +105,14 @@ export async function createProfessional(
 
   if (user.email) {
     await sendSignupConfirmationEmail(user.email, businessName);
+  }
+
+  const coordinates = await geocodeCity(city, state);
+  if (coordinates) {
+    await supabase
+      .from("professionals")
+      .update({ latitude: coordinates.latitude, longitude: coordinates.longitude })
+      .eq("id", professional.id);
   }
 
   try {

@@ -21,7 +21,9 @@ parceiro com fila de verificação.
      antes-e-depois, com políticas de acesso;
    - `0003_admin_and_leads.sql` — políticas de RLS para o painel admin
      (aprovar/rejeitar) e para o profissional atualizar o status dos próprios
-     leads.
+     leads;
+   - `0004_geolocation.sql` — colunas `latitude`/`longitude` em
+     `professionals`, usadas pelo mapa do diretório.
 
    Para testar o painel `/admin`, promova seu usuário a admin direto no banco:
    `update public.profiles set role = 'admin' where id = 'SEU_USER_ID';`
@@ -83,6 +85,20 @@ supabase/migrations/0001_init.sql → schema completo + RLS
 Row Level Security já está configurado: qualquer visitante lê profissionais
 **verificados**, mas só o dono edita o próprio cadastro; leads de contato só
 são visíveis para o profissional dono.
+
+## Mapa de profissionais (Fase 2)
+
+`/diretorio` mostra um mapa (Leaflet + tiles do OpenStreetMap, sem chave de
+API) com os profissionais verificados que têm coordenadas. As coordenadas são
+preenchidas automaticamente no cadastro via geocoding gratuito da
+cidade/estado (Nominatim/OpenStreetMap) — granularidade de cidade, não
+endereço exato.
+
+**Limitação atual**: como ainda não existe uma tela de edição de cadastro,
+profissionais que já existiam no banco **antes** da migration
+`0004_geolocation.sql` não têm coordenadas e não aparecem no mapa até serem
+recadastrados (ou até alguém rodar um `update` manual preenchendo
+`latitude`/`longitude` no SQL Editor do Supabase).
 
 ## O que falta para a Fase 1 (MVP completo)
 

@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { ProfessionalCard } from "@/components/ProfessionalCard";
+import { ProfessionalsMap } from "@/components/ProfessionalsMap";
 
 type SearchParams = { categoria?: string; cidade?: string };
 
@@ -42,6 +43,11 @@ export default async function DiretorioPage({
 
   const { data: professionals } = await query;
 
+  const professionalsWithLocation = (professionals ?? []).filter(
+    (p): p is typeof p & { latitude: number; longitude: number } =>
+      p.latitude != null && p.longitude != null
+  );
+
   return (
     <div className="mx-auto max-w-6xl px-6 py-12">
       <h1 className="font-display text-3xl font-semibold text-ink">
@@ -78,6 +84,12 @@ export default async function DiretorioPage({
           Buscar
         </button>
       </form>
+
+      {professionalsWithLocation.length > 0 && (
+        <div className="mt-8 h-[420px] w-full overflow-hidden rounded-lg border border-brand-100">
+          <ProfessionalsMap professionals={professionalsWithLocation} />
+        </div>
+      )}
 
       <div className="mt-10 grid grid-cols-1 gap-6 sm:grid-cols-2 lg:grid-cols-3">
         {professionals?.map((professional) => (

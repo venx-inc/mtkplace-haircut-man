@@ -71,7 +71,7 @@ Objetivo: crescer a oferta sem depender de cadastro manual, e dar ao cliente mot
 - Notificações em tempo real ou near-real-time de lead novo (webhook para WhatsApp Business API ou e-mail imediato).
 - Modelagem de monetização: nova tabela `plans`/`subscriptions` ou campo `featured_until` em `professionals` para destaque pago.
 - Métricas básicas: tabela ou view de eventos (visualizações de perfil, cliques em "contato") para alimentar o dashboard da Fase 3.
-- Colunas de geolocalização (`latitude`/`longitude`) em `professionals`, preenchidas via geocoding da cidade/endereço no cadastro (necessário pro mapa do diretório).
+- ~~Colunas de geolocalização (`latitude`/`longitude`) em `professionals`, preenchidas via geocoding da cidade/endereço no cadastro.~~ ✅ feito (`0004_geolocation.sql` + geocoding via Nominatim/OpenStreetMap, gratuito, em `src/lib/geocode.ts`). Granularidade de cidade, não endereço exato.
 
 ### Frontend
 
@@ -80,7 +80,7 @@ Objetivo: crescer a oferta sem depender de cadastro manual, e dar ao cliente mot
 - Selo/indicador visual de "verificado" mais elaborado (com data de verificação ou tipo de checagem).
 - Indicador de destaque pago no card do profissional (ex: "patrocinado" ou posição fixa no topo).
 - Formulário de escolha de plano/destaque para o profissional dentro do próprio painel.
-- Mapa de profissionais no diretório (visualizar quem está perto de você), com Leaflet + OpenStreetMap.
+- ~~Mapa de profissionais no diretório, com Leaflet + OpenStreetMap.~~ ✅ feito — aparece em `/diretorio` quando há pelo menos um profissional verificado com coordenadas.
 
 **Critério de saída da fase**: crescimento de oferta sem intervenção manual constante, e a primeira receita entrando.
 
